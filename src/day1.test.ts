@@ -1,14 +1,9 @@
 import fs from 'fs';
 import _ from 'lodash';
-
-const readInput = () => 
-  _.chain(fs.readFileSync('input/day1', "utf-8"))
-  .trim()
-  .split("\n")
-  .value();
+import readInput from './readInput';
 
 function part1() {
-  return _.chain(readInput())
+  return _.chain(readInput('day1'))
   .map(str => parseInt(str, 10))
   .reduce((a,b) => a + b, 0)
   .value();
@@ -22,7 +17,7 @@ function* repeat<T>(arr: T[]) {
 
 function part2() {
   const seen = new Set();
-  const frequencyChanges = _.map(readInput(), str => parseInt(str, 10));
+  const frequencyChanges = _.map(readInput('day1'), str => parseInt(str, 10));
   let accumulator = 0;
   for (const frequency of repeat(frequencyChanges)) {
     accumulator += frequency;
