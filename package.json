@@ -1,0 +1,20 @@
+{
+  "name": "advent-of-code-2018",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "jest": {
+    "preset": "ts-jest"
+  },
+  "dependencies": {
+    "lodash": "^4.17.11"
+  },
+  "devDependencies": {
+    "@types/jest": "^23.3.10",
+    "@types/lodash": "^4.14.118",
+    "@types/node": "^10.12.11",
+    "jest": "^23.6.0",
+    "ts-jest": "^23.10.5",
+    "typescript": "^3.2.1"
+  }
+}
