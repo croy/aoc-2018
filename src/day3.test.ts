@@ -41,8 +41,7 @@ function parseLine(line: string): LineInput {
 }
 
 function part1() {
-  const lines = readInput('day3');
-  const inputs = lines.map(parseLine);
+  const inputs = readInput('day3', parseLine);
   const grid: {
     [index: string] : number,
   } = {};
@@ -59,8 +58,7 @@ function part1() {
 }
 
 function part2() {
-  const lines = readInput('day3');
-  const inputs = lines.map(parseLine);
+  const inputs = readInput('day3', parseLine);
   const grid: {
     [index: string] : number,
   } = {};
