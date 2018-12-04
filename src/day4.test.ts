@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import moment, { MomentLongDateFormat } from 'moment';
+import moment, { Moment } from 'moment';
 import readInput from './readInput';
 
 
@@ -50,8 +50,63 @@ function parseInput(line: string): LoggedEvent {
   throw line;
 }
 
+type SleepWindow = {
+  id: string,
+  start: Moment,
+  end: Moment
+}
+
+function getSleeps() {
+  const logEvents = readInput('day4', parseInput);
+  return _.chain(logEvents)
+  .sortBy('time')
+  .value()
+  .reduce<SleepWindow & {sleeps: SleepWindow[]}>((acc, curr) => {
+    if (curr.type === 'start') {
+      return {
+        ...acc,
+        id: curr.id,
+      }
+    } else if (curr.type === 'sleep') {
+      return {
+        ...acc,
+        start: curr.time,
+      }
+    } else {
+      return {
+        ...acc,
+        sleeps: [...acc.sleeps, {id: acc.id, start: acc.start, end: curr.time}],
+      }
+    }
+    throw 'test';
+  }, {id: '', start: moment(), end: moment(), sleeps: [] as SleepWindow[]}).sleeps;
+} 
+
+function sleepToMinutes(sleep: SleepWindow): number[] {
+  return _.range(sleep.start.minutes(), sleep.end.minutes(), 1)
+}
+
 function part1() {
-  return readInput('day4', parseInput)
+  const sleepsByGuard = _.groupBy(getSleeps(), 'id');
+  const sleepiestGuard = _.chain(sleepsByGuard)
+    .mapValues(sleeps => sleeps.reduce((acc: number, sleep) => acc + moment.duration(sleep.end.diff(sleep.start)).asMinutes(), 0))
+    .toPairs()
+    .sortBy('1')
+    .last()
+    .get('0', '')
+    .toNumber()
+    .value();
+  const sleepiestGuardSleeps = sleepsByGuard[sleepiestGuard];
+  const sleepiestGuardsSleepiestMinute = _.chain(sleepiestGuardSleeps)
+    .flatMap(sleepToMinutes)
+    .countBy()
+    .toPairs()
+    .sortBy('1')
+    .last()
+    .get('0', '')
+    .toNumber()
+    .value();
+  return sleepiestGuardsSleepiestMinute * sleepiestGuard;
 }
 
 function part2() {
