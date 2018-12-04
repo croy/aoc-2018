@@ -78,12 +78,21 @@ function getSleeps() {
         sleeps: [...acc.sleeps, {id: acc.id, start: acc.start, end: curr.time}],
       }
     }
-    throw 'test';
   }, {id: '', start: moment(), end: moment(), sleeps: [] as SleepWindow[]}).sleeps;
 } 
 
 function sleepToMinutes(sleep: SleepWindow): number[] {
   return _.range(sleep.start.minutes(), sleep.end.minutes(), 1)
+}
+
+function sleepiestMinute(sleepWindows: SleepWindow[]): [string, number] | undefined {
+  return _.chain(sleepWindows)
+    .flatMap(sleepToMinutes)
+    .countBy()
+    .toPairs()
+    .sortBy('1')
+    .last()
+    .value();
 }
 
 function part1() {
@@ -97,12 +106,7 @@ function part1() {
     .toNumber()
     .value();
   const sleepiestGuardSleeps = sleepsByGuard[sleepiestGuard];
-  const sleepiestGuardsSleepiestMinute = _.chain(sleepiestGuardSleeps)
-    .flatMap(sleepToMinutes)
-    .countBy()
-    .toPairs()
-    .sortBy('1')
-    .last()
+  const sleepiestGuardsSleepiestMinute = _.chain(sleepiestMinute(sleepiestGuardSleeps))
     .get('0', '')
     .toNumber()
     .value();
@@ -110,11 +114,19 @@ function part1() {
 }
 
 function part2() {
+  return _.chain(getSleeps())
+    .groupBy('id')
+    .mapValues(sleepiestMinute)
+    .map((minuteCount, id) => ({ id, minute : _.get(minuteCount, '0'), count: _.get(minuteCount, '1')}))
+    .sortBy('count')
+    .map(({id, minute}) => parseInt(id) * parseInt(minute as string))
+    .last()
+    .value();
 
 }
 
 describe('output', () => {
-  test.only('part1', () => {
+  test('part1', () => {
     console.log(part1());
   })
   test('part2', () => {
