@@ -1,23 +1,16 @@
 import _ from 'lodash';
 import readInput from './readInput';
 
-function atMostOneReaction(line: string) {
-  for(let i = 0; i < line.length -1; i++) {
-    if (line[i] !== line[i+1] && _.toUpper(line[i]) === _.toUpper(line[i+1])) {
-      return line.substring(0, i) + line.substring(i+2);
+function reduceString(line: string) {
+  let stack = [] as string[];
+  for (const ltr of line) {
+    if (_.last(stack) !== ltr && _.toUpper(_.last(stack)) === _.toUpper(ltr)) {
+        stack.pop();
+    } else {
+      stack.push(ltr);
     }
   }
-  return line;
-}
-
-function reduceString(line: string) {
-  let prev = line;
-  let current = atMostOneReaction(line);
-  while (prev !== current) {
-    prev = current;
-    current = atMostOneReaction(current);
-  }
-  return current;
+  return _.join(stack, '');
 }
 
 function part1() {
@@ -29,7 +22,7 @@ function part2() {
   return _.chain('abcdefghijklmnopqrstuvwxyz')
   .map(ltr  => _.join(_.filter(input, c => _.toUpper(c) !== _.toUpper(ltr)), ''))
   .map(b => reduceString(b).length)
-  .sort()
+  .min()
   .value();
 }
 
