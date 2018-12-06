@@ -1,16 +1,22 @@
 import _ from 'lodash';
 import readInput from './readInput';
 
+function react(a: string, b:string) {
+  return a !== b && _.toUpper(a) === _.toUpper(b);
+}
+
 function reduceString(line: string) {
-  let stack = [] as string[];
-  for (const ltr of line) {
-    if (_.last(stack) !== ltr && _.toUpper(_.last(stack)) === _.toUpper(ltr)) {
-        stack.pop();
-    } else {
-      stack.push(ltr);
-    }
-  }
-  return _.join(stack, '');
+  return _.chain(line.split(''))
+    .reduce((acc, ltr) => {
+      if (react(ltr, _.last(acc) as string)) {
+        acc.pop();
+      } else {
+         acc.push(ltr);
+      }
+      return acc;
+    }, [] as string[])
+    .join('')
+    .value();
 }
 
 function part1() {
