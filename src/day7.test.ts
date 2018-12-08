@@ -1,6 +1,8 @@
 import _ from 'lodash';
 import readInput from './readInput';
 
+const baseJobLength = 60;
+
 type Step = {
   id: string,
   timeToComplete: number,
@@ -27,7 +29,7 @@ function buildSteps(inputs: {step: string, depends: string}[]): Step[] {
   return _.chain(allSteps)
     .map(step => ({
       id: step,
-      timeToComplete: 61 + (step.codePointAt(0) as number) - ('A'.codePointAt(0) as number),
+      timeToComplete: baseJobLength + (step.codePointAt(0) as number) - ('A'.codePointAt(0) as number) + 1,
       dependencies: dependencyMap[step] || [],
     }))
     .value();
@@ -50,17 +52,39 @@ function completeSteps(steps: Step[], workers: number): Job[] {
   const allStepIds = _.keys(stepById).sort();
   const completionOrder = [] as Job[];
   const completedStepIds = new Set();
-  while (completionOrder.length !== allStepIds.length) {
-    const next = _.chain(allStepIds)
+  let jobs = [] as Job[];
+  let availableSteps = [] as string[];
+  do {
+    const currentTime = _.chain(jobs).map(job => job.completionTime).min().value() || 0;
+    const completedJobs = _.chain(jobs)
+      .filter(job => job.completionTime === currentTime)
+      .value();
+    _.forEach(completedJobs, job => {
+        completedStepIds.add(job.step.id);
+        completionOrder.push(job);
+      });
+    
+    const remainingJobs = _.chain(jobs)
+      .filter(job => job.completionTime > currentTime)
+      .value();
+    availableSteps = _.chain(allStepIds)
       .filter(step => !completedStepIds.has(step))
-      .find(step => _.every(stepById[step].dependencies, dep => completedStepIds.has(dep)))
-      .value() as string;
-    completedStepIds.add(next);
-    completionOrder.push({
-      step: stepById[next],
-      completionTime: 0,
-    });
-  }
+      .filter(step => _.every(stepById[step].dependencies, dep => completedStepIds.has(dep)))
+      .filter(step => !_.includes(_.map(remainingJobs, j => j.step.id), step))
+      .sort()
+      .value();
+    jobs = _.concat(
+      remainingJobs,
+      _.chain(availableSteps)
+        .take(workers - remainingJobs.length)
+        .map(stepId => ({
+          step: stepById[stepId],
+          completionTime: stepById[stepId].timeToComplete + currentTime,
+        }))
+        .value()
+    );
+
+  } while (availableSteps.length !== 0 || jobs.length !== 0);
   return completionOrder;
 }
 
@@ -74,15 +98,22 @@ function part1() {
 }
 
 function part2() {
+  const input = readInput('day7', parseLine);
+  const steps = buildSteps(input);
+  return _.chain(completeSteps(steps, 5))
+    .map(j => j.completionTime)
+    .max()
+    .value();
 }
 
 describe('output', () => {
   test('part 1 ', () => {
     const result = part1();
-    expect(result).toBe('CFMNLOAHRKPTWBJSYZVGUQXIDE')
+    expect(result).toBe('CFMNLOAHRKPTWBJSYZVGUQXIDE');
   })
 
   test('part 2 ', () => {
-    console.log(part2());
+    const result = part2();
+    expect(result).toBe(971);
   })
 });
